@@ -1,0 +1,76 @@
+# Based on: https://docs.graylog.org/en/3.3/pages/installation/docker.html
+version: "3.8"
+
+volumes:
+  mongo_data:
+    driver: local
+  es_data:
+    driver: local
+  graylog_data:
+    driver: local
+
+secrets:
+  graylog_password_secret:
+    external: true
+  graylog_root_password_sha2:
+    external: true
+
+networks:
+  graylog:
+    driver: overlay
+
+services:
+  # MongoDB: https://hub.docker.com/_/mongo/
+  mongo:
+    image: mongo:3
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - graylog
+
+  # Elasticsearch: https://hub.docker.com/_/elasticsearch
+  elasticsearch:
+    image: elasticsearch:6.8.12
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256M -Xmx256M
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - graylog
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    # Option 'ulimits' does not work with docker swarm
+    # https://stackoverflow.com/a/55556893/12869323
+    # ulimits:
+    #   memlock:
+    #     soft: -1
+    #     hard: -1
+
+  # Graylog: https://hub.docker.com/r/graylog/graylog/
+  graylog:
+    image: graylog/graylog:3.3
+    ports:
+      # Graylog web interface and REST API
+      - 9000:9000
+      # Syslog TCP
+      - 1514:1514
+      # Syslog UDP
+      - 1514:1514/udp
+      # GELF TCP
+      - 12201:12201
+      # GELF UDP
+      - 12201:12201/udp
+    environment:
+      - GRAYLOG_HTTP_EXTERNAL_URI=https://graylog:9000/
+      - GRAYLOG_PASSWORD_SECRET__FILE=/run/secrets/graylog_password_secret
+      - GRAYLOG_ROOT_PASSWORD_SHA2__FILE=/run/secrets/graylog_root_password_sha2
+    volumes:
+      - graylog_data:/usr/share/graylog/data
+    secrets:
+      - graylog_password_secret
+      - graylog_root_password_sha2
+    networks:
+      - graylog
