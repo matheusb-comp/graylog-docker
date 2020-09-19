@@ -27,6 +27,11 @@ services:
       - mongo_data:/data/db
     networks:
       - graylog
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   # Elasticsearch: https://hub.docker.com/_/elasticsearch
   elasticsearch:
@@ -41,6 +46,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.50'
           memory: 512M
     # Option 'ulimits' does not work with docker swarm
     # https://stackoverflow.com/a/55556893/12869323
@@ -74,3 +80,13 @@ services:
       - graylog_root_password_sha2
     networks:
       - graylog
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+    # Override the Graylog's image HEALTHCHECK to be less strict
+    # https://community.graylog.org/t/graylog-docker-unhealthy-container/12945/7
+    healthcheck:
+      timeout: 30s
+      start_period: 120s
