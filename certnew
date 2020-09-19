@@ -66,24 +66,20 @@ if [ ! -x "$(command -v docker)" ]; then
   exit 1
 fi
 
-# Warn about email not being set
-if [ -z "${EMAIL:+unsetornull}" ]; then
-  echo "## Warning: Registering without an email is strongly discouraged."
-  if [ "$NON_INTERACTIVE" != "true" ]; then
-    read -p "## Are you sure? (y/N) " res
-    if [ "$res" != "Y" ] && [ "$res" != "y" ]; then exit; fi
-  fi
-  # Prepare the email argument that will be used by Certbot
-  EMAIL="--register-unsafely-without-email"
-else
-  EMAIL="--email $EMAIL"
-fi
-
 # Apply the default to DATA_PATH
 cd $(dirname "$0")
 DATA_PATH=${DATA_PATH:-"$(pwd)/cert-data"}
 CONF_CERTBOT="${DATA_PATH}/letsencrypt"
 cd - > /dev/null 2>&1
+
+# Check if DATA_PATH already exists and confirm before replacing
+if [ -d "$CONF_CERTBOT" ]; then
+  echo "## Warning: Existing data found. Certificates will be overwritten."
+  if [ "$NON_INTERACTIVE" != "true" ]; then
+    read -p "## Are you sure? (y/N) " res
+    if [ "$res" != "Y" ] && [ "$res" != "y" ]; then exit; fi
+  fi
+fi
 
 # Check if at least a domain was provided
 if [ -z "${DOMAINS:+unsetornull}" ]; then
@@ -106,13 +102,17 @@ if [ "$FAKE_CERT" = "true" ]; then
   exit
 fi
 
-# Check if DATA_PATH already exists and confirm before replacing
-if [ -d "$CONF_CERTBOT" ]; then
-  echo "## Warning: Existing data found. Certificates will be overwritten."
+# Warn about email not being set
+if [ -z "${EMAIL:+unsetornull}" ]; then
+  echo "## Warning: Registering without an email is strongly discouraged."
   if [ "$NON_INTERACTIVE" != "true" ]; then
     read -p "## Are you sure? (y/N) " res
     if [ "$res" != "Y" ] && [ "$res" != "y" ]; then exit; fi
   fi
+  # Prepare the email argument that will be used by Certbot
+  EMAIL="--register-unsafely-without-email"
+else
+  EMAIL="--email $EMAIL"
 fi
 
 # Setup the Certbot plugin (webroot or standalone)
