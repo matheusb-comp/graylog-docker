@@ -45,7 +45,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 768M
     # Option 'ulimits' does not work with docker swarm
     # https://stackoverflow.com/a/55556893/12869323
     # ulimits:
@@ -80,7 +80,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 768M
     # Override the Graylog's image HEALTHCHECK to be less strict
     # https://community.graylog.org/t/graylog-docker-unhealthy-container/12945/7
     healthcheck:
