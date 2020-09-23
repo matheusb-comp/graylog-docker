@@ -30,8 +30,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: 256M
+          memory: 512M
 
   # Elasticsearch: https://hub.docker.com/_/elasticsearch
   elasticsearch:
@@ -46,7 +45,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.50'
           memory: 512M
     # Option 'ulimits' does not work with docker swarm
     # https://stackoverflow.com/a/55556893/12869323
@@ -70,7 +68,6 @@ services:
       # GELF UDP
       - 12201:12201/udp
     environment:
-      - GRAYLOG_HTTP_EXTERNAL_URI=https://graylog:9000/
       - GRAYLOG_PASSWORD_SECRET__FILE=/run/secrets/graylog_password_secret
       - GRAYLOG_ROOT_PASSWORD_SHA2__FILE=/run/secrets/graylog_root_password_sha2
     volumes:
@@ -83,7 +80,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.50'
           memory: 512M
     # Override the Graylog's image HEALTHCHECK to be less strict
     # https://community.graylog.org/t/graylog-docker-unhealthy-container/12945/7
